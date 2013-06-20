@@ -40,7 +40,7 @@ end
 get '/retrieve' do
   @db = connect_to_db
   @coll = @db['articles']
-  articles = @coll.find
+  articles = @coll.find.toArray()
   
   articles.to_json
 end
