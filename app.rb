@@ -5,6 +5,18 @@ require 'rubygems'
 require 'bundler/setup'
 require 'sinatra'
 require 'json'
+require 'mongo'
+require 'uri'
+
+# connect to heroku mongo db 
+def connect_to_db
+  return @db_connection if @db_connection
+  db = URI.parse(ENV['MONGOHQ_URL'])
+  db_name = db.path.gsub(/^\//, '')
+  @db_connection = Mongo::Connection.new(db.host, db.port).db(db_name)
+  @db_connection.authenticate(db.user, db.password) unless (db.user.nil? || db.user.nil?)
+  @db_connection
+end
 
 # all responses are JSON
 before '*' do
@@ -12,8 +24,25 @@ before '*' do
 end
 
 
-get '/' do
 
+get '/seed' do
+  @db = connect_to_db
+  @coll = @db['articles']
+  @coll.remove
+
+  3.times do |i|
+    @coll.insert({'a' => i+1})
+  end
+
+  { :count => 3, :message => "You successfully seeded the database." }.to_json
+end
+
+get '/retrieve' do
+  @db = connect_to_db
+  @coll = @db['articles']
+  articles = @coll.find
+  
+  articles.to_json
 end
 
 
