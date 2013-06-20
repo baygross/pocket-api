@@ -9,10 +9,10 @@ before '*' do
    MongoDB.connect()
 end
 
-get '/erase' erase_database
-get '/sync' sync_articles
-get '/retrieve' retrieve_articles
-get '/' { 'hello' : 'world' }
+get ('/erase'){ erase_database }
+get ('/sync'){ sync_articles }
+get ('/retrieve'){ retrieve_articles }
+get ('/') {{ 'hello' => 'world' }.to_json}
 
 not_found || error do
   { :error => '404', :details => + env['sinatra.error'] }.to_json
