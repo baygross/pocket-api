@@ -54,8 +54,12 @@ module SyncAPI
   # parse the response of the diffbot API into our format
   def self.parseJSON( resp )
 
-    x = JSON.parse(resp)
-  
+    begin
+      x = JSON.parse(resp)
+    rescue
+      return nil
+    end
+    
     # grab out parameters
     title = x['title'] || ''
     date = x['date'] || ''
