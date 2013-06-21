@@ -22,7 +22,7 @@ if Sinatra::Base.production?
   }
 end
 
-# then load our app
-require File.join(File.dirname(__FILE__), 'lib', 'app')
-
-
+# main models and app
+require File.join(File.dirname(__FILE__), './lib/mongo')
+require File.join(File.dirname(__FILE__), './lib/sync')
+require File.join(File.dirname(__FILE__), './lib/app')

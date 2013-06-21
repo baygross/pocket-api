@@ -2,50 +2,34 @@ require 'open-uri'
 require 'net/http'
 
 module SyncAPI
-  
-  # main endpoint, mines down RSS feed
-  # so you can add new links to the DB
-  def self.pull()
 
-    # get article links from Pocket RSS
-    links = SyncAPI.grabRSS()
-    articles = SyncAPI.loadLinks( links )
-    
-    return articles
+  # grabs RSS feed from pocket and strips to list of links
+  def self.grabRSS( user_name)
+    url = 'http://getpocket.com/users/' + user_name + '/feed/all'
+    uri = URI(url)
+    resp = Net::HTTP.get(uri)
+    links = resp.scan( /<guid>([^<]*)<\/guid>/ ).flatten
+    return links
   end
-  
-  
+
   # given an array of urls, returns an array of article data from diffbot
-  def self.loadLinks( urls )
+  def self.loadLinks( urls, diffbot_token )
     articles = []
     
     # parse each url with DiffBot
     urls.each do |url|
-      puts 'saving: ' + url
-      content = SyncAPI.grabJSON( url ) 
-      content = SyncAPI.parseJSON( content )
+      puts 'now processing: ' + url
+      content = SyncAPI.grabJSON( url, diffbot_token ) 
+      content = SyncAPI.parseJSON( content, source )
       articles << content if content
-       
     end
     
     return articles
   end
-  
-
-  :private
-  
-  # grabs RSS feed from pocket and strips to list of links
-  def self.grabRSS()
-    url = 'http://getpocket.com/users/' + CONFIG['pocket_user'] + '/feed/all'
-    uri = URI(url)
-    resp = Net::HTTP.get(uri)
-    return resp.scan( /<guid>([^<]*)<\/guid>/ ).flatten
-  end
-
 
   # hit the diffbot API with an article URL from pocket
-  def self.grabJSON( article_path ) 
-    base = 'http://www.diffbot.com/api/article?summary=true&token=' + CONFIG['diffbot_token'] + '&url='
+  def self.grabJSON( article_path, diffbot_token ) 
+    base = 'http://www.diffbot.com/api/article?summary=true&token=' + diffbot_token + '&url='
     uri = URI(base + article_path)
     resp = Net::HTTP.get(uri)
     return resp
@@ -89,9 +73,11 @@ module SyncAPI
       'icon' => icon,
       'summary' => summary,
       'url' => url,
-      'img' => img
+      'img' => img,
+      'ts' => Time.now.strftime('%b %e')
     }
   
   end  
-  
+
 end
+
