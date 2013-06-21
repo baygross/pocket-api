@@ -20,7 +20,7 @@ module SyncAPI
     urls.each do |url|
       puts 'now processing: ' + url
       content = SyncAPI.grabJSON( url, diffbot_token ) 
-      content = SyncAPI.parseJSON( content, source )
+      content = SyncAPI.parseJSON( content )
       articles << content if content
     end
     
