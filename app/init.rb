@@ -12,6 +12,8 @@ CONFIG = YAML.load_file(File.dirname(__FILE__) + '/config.yml')
 
 # swap DB settings for heroku on production
 if Sinatra::Base.production?
+  require 'newrelic_rpm'
+  
   db = URI.parse(ENV['MONGOHQ_URL'])
   CONFIG['db'] = {
     'host' => db.host,
