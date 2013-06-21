@@ -10,7 +10,7 @@ before '*' do
    MongoDB.connect()
 end
 
-#get ('/erase'){ erase_database }
+get ('/erase'){ erase_database }
 get ('/batch'){ batch_load }
 get ('/sync'){ sync_articles }
 get ('/retrieve'){ retrieve_articles }
