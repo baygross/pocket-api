@@ -2,45 +2,50 @@ require 'open-uri'
 require 'net/http'
 
 module SyncAPI
-  DIFFBOT_TOKEN = 'd023c6283d89d44ab9e1f2c192811d9d'
-  POCKET_USER = 'baygross'
   
-  # main endpoint
+  # main endpoint, mines down RSS feed
+  # so you can add new links to the DB
   def self.pull()
-    articles = []
-    
+
     # get article links from Pocket RSS
     links = SyncAPI.grabRSS()
+    articles = SyncAPI.loadLinks( links )
     
-    # parse each link with DiffBot
-    links.each(2) do |url, ts|
-      
+    return articles
+  end
+  
+  
+  # given an array of urls, returns an array of article data from diffbot
+  def self.loadLinks( urls )
+    articles = []
+    
+    # parse each url with DiffBot
+    urls.each do |url|
+      puts 'saving: ' + url
       content = SyncAPI.grabJSON( url ) 
       content = SyncAPI.parseJSON( content )
-      next if !content
-      content['timestamp'] = ts
-      articles << content
+      articles << content if content
        
     end
     
     return articles
   end
-
+  
 
   :private
   
   # grabs RSS feed from pocket and strips to list of links
   def self.grabRSS()
-    url = 'http://getpocket.com/users/' + POCKET_USER + '/feed/all'
+    url = 'http://getpocket.com/users/' + CONFIG['pocket_user'] + '/feed/all'
     uri = URI(url)
     resp = Net::HTTP.get(uri)
-    return resp.scan( /<guid>([^<]*)<\/guid>|<pubDate>([^<]*)<\/pubDate>/ )
+    return resp.scan( /<guid>([^<]*)<\/guid>/ ).flatten
   end
 
 
   # hit the diffbot API with an article URL from pocket
   def self.grabJSON( article_path ) 
-    base = 'http://www.diffbot.com/api/article?summary=true&token=' + TOKEN + '&url='
+    base = 'http://www.diffbot.com/api/article?summary=true&token=' + CONFIG['diffbot_token'] + '&url='
     uri = URI(base + article_path)
     resp = Net::HTTP.get(uri)
     return resp
@@ -53,6 +58,7 @@ module SyncAPI
   
     # grab out parameters
     title = x['title'] || ''
+    date = x['date'] || ''
     author = x['author'] || ''
     icon = x['icon'] || ''
     summary = x['summary'] || ''
@@ -75,6 +81,7 @@ module SyncAPI
       'title' => title,
       'source' => source,
       'author' => author,
+      'date' => date,
       'icon' => icon,
       'summary' => summary,
       'url' => url,

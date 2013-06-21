@@ -1,0 +1,8 @@
+diffbot_token: d023c6283d89d44ab9e1f2c192811d9d
+pocket_user: baygross
+db:
+  host: localhost
+  port: 27017
+  name: pocketAPI
+  user:
+  password:
